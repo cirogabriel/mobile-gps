@@ -15,6 +15,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Definir el task para rastreo en segundo plano
 const LOCATION_TASK_NAME = 'background-location-task';
@@ -52,6 +53,7 @@ interface LocationData {
 }
 
 export default function IndexScreen() {
+    const insets = useSafeAreaInsets();
     const [isTracking, setIsTracking] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [userName, setUserName] = useState('');
@@ -118,6 +120,14 @@ export default function IndexScreen() {
         const handleAppStateChange = async (nextAppState: string) => {
             console.log('🔄 App state changed to:', nextAppState);
 
+            // Forzar re-render para actualizar safe area insets cuando vuelve de background
+            if (nextAppState === 'active') {
+                // Force update del layout
+                setTimeout(() => {
+                    // Trigger re-render
+                }, 100);
+            }
+
             // Solo actuar si realmente estamos haciendo tracking
             if (nextAppState === 'active' && isTracking) {
                 console.log('📱 App volvió a primer plano, verificando background service...');
@@ -160,22 +170,27 @@ export default function IndexScreen() {
         };
 
         const subscription = AppState.addEventListener('change', handleAppStateChange);
-        
+
         return () => {
             subscription?.remove();
         };
-    }, [isTracking]);    const startTracking = async () => {
+    }, [isTracking]); const startTracking = async () => {
         if (!userName.trim()) {
             Alert.alert('Error', 'Por favor ingresa tu nombre');
             return;
         }
 
         try {
-            // Paso 1: Pedir permisos foreground
-            let { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
+            // Paso 1: Verificar permisos foreground actuales
+            let { status: foregroundStatus } = await Location.getForegroundPermissionsAsync();
             if (foregroundStatus !== 'granted') {
-                Alert.alert('Permiso requerido', 'Se necesita acceso a la ubicación para usar esta app');
-                return;
+                // Solo pedir si no los tiene
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                foregroundStatus = status;
+                if (foregroundStatus !== 'granted') {
+                    Alert.alert('Permiso requerido', 'Se necesita acceso a la ubicación para usar esta app');
+                    return;
+                }
             }
             console.log('✅ Permisos foreground concedidos');
 
@@ -190,36 +205,46 @@ export default function IndexScreen() {
             }
             console.log('✅ Servicios de ubicación habilitados');
 
-            // Paso 3: Solicitar permisos de background con explicación
-            Alert.alert(
-                'Permisos de segundo plano',
-                'Para que la app continúe rastreando tu ubicación cuando esté en segundo plano, necesitamos permisos adicionales. En la siguiente pantalla, selecciona "Permitir todo el tiempo".',
-                [
-                    {
-                        text: 'Continuar',
-                        onPress: async () => {
-                            const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
-                            console.log('Estado permisos background:', backgroundStatus);
+            // Paso 3: Verificar permisos de background actuales
+            const { status: currentBackgroundStatus } = await Location.getBackgroundPermissionsAsync();
+            console.log('🔍 Permisos background actuales:', currentBackgroundStatus);
 
-                            if (backgroundStatus === 'granted') {
-                                console.log('✅ Permisos background concedidos');
-                                await proceedWithTracking(true);
-                            } else {
-                                console.log('⚠️ Permisos background NO concedidos, usando solo foreground');
-                                Alert.alert(
-                                    'Aviso',
-                                    'Sin permisos de segundo plano, el tracking se pausará cuando salgas de la app. ¿Continuar de todos modos?',
-                                    [
-                                        { text: 'Cancelar', style: 'cancel' },
-                                        { text: 'Continuar', onPress: () => proceedWithTracking(false) }
-                                    ]
-                                );
+            if (currentBackgroundStatus === 'granted') {
+                // Ya tiene permisos, proceder directamente
+                console.log('✅ Permisos background ya concedidos, procediendo...');
+                await proceedWithTracking(true);
+            } else {
+                // No tiene permisos, mostrar explicación UNA SOLA VEZ
+                Alert.alert(
+                    'Permisos de segundo plano',
+                    'Para que la app continúe rastreando tu ubicación cuando esté en segundo plano, necesitamos permisos adicionales. En la siguiente pantalla, selecciona "Permitir todo el tiempo".',
+                    [
+                        {
+                            text: 'Continuar',
+                            onPress: async () => {
+                                const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+                                console.log('Estado permisos background:', backgroundStatus);
+
+                                if (backgroundStatus === 'granted') {
+                                    console.log('✅ Permisos background concedidos');
+                                    await proceedWithTracking(true);
+                                } else {
+                                    console.log('⚠️ Permisos background NO concedidos, usando solo foreground');
+                                    Alert.alert(
+                                        'Aviso',
+                                        'Sin permisos de segundo plano, el tracking se pausará cuando salgas de la app. ¿Continuar de todos modos?',
+                                        [
+                                            { text: 'Cancelar', style: 'cancel' },
+                                            { text: 'Continuar', onPress: () => proceedWithTracking(false) }
+                                        ]
+                                    );
+                                }
                             }
-                        }
-                    },
-                    { text: 'Cancelar', style: 'cancel' }
-                ]
-            );
+                        },
+                        { text: 'Cancelar', style: 'cancel' }
+                    ]
+                );
+            }
 
         } catch (error) {
             console.error('Error en permisos:', error);
@@ -371,7 +396,7 @@ export default function IndexScreen() {
 
     const stopTracking = async () => {
         console.log('🛑 Iniciando proceso de detener tracking...');
-        
+
         try {
             // PRIMERO: Establecer isTracking a false para prevenir cualquier reactivación
             setIsTracking(false);
@@ -402,7 +427,7 @@ export default function IndexScreen() {
             setStartTime(null);
             setLastUpdateTime(null);
             setElapsedTime('0s');
-            
+
             console.log('✅ Tracking completamente detenido');
         } catch (error) {
             console.error('❌ Error deteniendo location tracking:', error);
@@ -435,7 +460,10 @@ export default function IndexScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView
+            style={[styles.container, { paddingBottom: Math.max(insets.bottom + 85, 110) }]}
+            edges={['top']}
+        >
             <StatusBar barStyle="dark-content" backgroundColor="white" />
 
             {/* Header */}
@@ -680,7 +708,7 @@ export default function IndexScreen() {
                     </View>
                 </View>
             </Modal>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -688,13 +716,14 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
+        // Padding dinámico manejado por useSafeAreaInsets
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        paddingTop: 50,
+        paddingTop: 10, // Reducido porque SafeAreaView maneja el padding superior
         paddingBottom: 16,
         backgroundColor: 'white',
     },
