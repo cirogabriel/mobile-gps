@@ -1,50 +1,97 @@
-# Welcome to your Expo app 👋
+# GPS Tracker Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Una aplicación móvil para el seguimiento GPS en tiempo real desarrollada con React Native y Expo.
 
-## Get started
+## Características
 
-1. Install dependencies
+- ✅ **Seguimiento GPS en tiempo real**: Captura coordenadas, precisión, velocidad y tiempo
+- ✅ **Interfaz de usuario intuitiva**: Diseño moderno basado en los mockups proporcionados
+- ✅ **Modal de identificación**: Permite ingresar el nombre del usuario antes del rastreo
+- ✅ **Navegación por pestañas**: Tres pantallas principales (Inicio, Mapa, Autor)
+- ✅ **Información del desarrollador**: Pantalla con datos académicos completos
 
-   ```bash
-   npm install
-   ```
+## Estructura de la App
 
-2. Start the app
+### Pantallas Principales
 
-   ```bash
-   npx expo start
-   ```
+1. **Inicio (index.tsx)**
+   - Vista principal con mapa interactivo
+   - Estado de rastreo (Detenido/Rastreando)
+   - Botón para iniciar/detener seguimiento
+   - Información de ubicación actual en tiempo real
 
-In the output, you'll find options to open the app in a
+2. **Mapa (map.tsx)**
+   - Vista del mapa interactivo
+   - Coordinadas de ubicación
+   - Botones de navegación y ubicación
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+3. **Autor (author.tsx)**
+   - Información del desarrollador
+   - Datos del curso y profesor
+   - Características de la aplicación
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Funcionalidades Implementadas
 
-## Get a fresh project
+### Rastreo GPS
+- Solicitud de permisos de ubicación
+- Obtención de coordenadas precisas
+- Cálculo de velocidad y precisión
+- Actualización automática cada 5 segundos
+- Registro de tiempo de inicio y última actualización
 
-When you're ready, run:
+### Interfaz de Usuario
+- Header personalizado con título y iconos
+- Tab bar inferior con 3 pestañas
+- Modal para captura de nombre de usuario
+- Diseño responsive y profesional
+- Iconos Material Icons para consistencia visual
 
+### Estados de la Aplicación
+- **Estado Inicial**: Mapa estático con información básica
+- **Estado Rastreando**: Información dinámica con datos GPS en tiempo real
+- **Modal de Inicio**: Captura de nombre y confirmación de rastreo
+
+## Información Académica
+
+- **Estudiante**: Ciro Gabriel Callapiña Castilla
+- **Número**: 5
+- **Profesor**: Jose Mauro Pillco Quispe
+- **Curso**: Sistemas Embebidos
+- **Versión**: 1.0.0
+
+## Instalación y Ejecución
+
+1. Instalar dependencias:
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Ejecutar en modo desarrollo:
+```bash
+npx expo start
+```
 
-## Learn more
+3. Escanear el código QR con Expo Go (iOS/Android)
 
-To learn more about developing your project with Expo, look at the following resources:
+## Dependencias Principales
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- React Native
+- Expo SDK
+- Expo Location (para GPS)
+- Expo Router (navegación)
+- Material Icons (iconografía)
 
-## Join the community
+## Permisos Requeridos
 
-Join our community of developers creating universal apps.
+- `ACCESS_FINE_LOCATION`: Para obtener ubicación GPS precisa
+- `ACCESS_COARSE_LOCATION`: Para ubicación aproximada como respaldo
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Notas de Desarrollo
+
+La aplicación está diseñada para coincidir exactamente con los mockups proporcionados, incluyendo:
+- Colores y tipografía específicos
+- Disposición exacta de elementos
+- Iconografía consistente
+- Estados visuales precisos
+
+La implementación está preparada para futuras integraciones con bases de datos y aplicaciones de terceros para visualización de datos en tiempo real.
