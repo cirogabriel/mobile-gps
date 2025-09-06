@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { Satellite } from 'lucide-react-native';
+import { Satellite, Send } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -28,6 +28,7 @@ export default function IndexScreen() {
   const [userName, setUserName] = useState('');
   const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState('0s');
 
@@ -186,7 +187,7 @@ export default function IndexScreen() {
                 style={styles.startButton} 
                 onPress={() => setShowModal(true)}
               >
-                <MaterialIcons name="navigation" size={16} color="white" />
+                <Send size={16} color="white" strokeWidth={2} />
                 <Text style={styles.startButtonText}>Iniciar</Text>
               </TouchableOpacity>
             </View>
@@ -277,7 +278,7 @@ export default function IndexScreen() {
               </View>
 
               <TouchableOpacity style={styles.stopButton} onPress={stopTracking}>
-                <MaterialIcons name="navigation" size={16} color="white" />
+                <Send size={16} color="white" strokeWidth={2} />
                 <Text style={styles.stopButtonText}>Detener</Text>
               </TouchableOpacity>
             </View>
@@ -322,11 +323,13 @@ export default function IndexScreen() {
             </TouchableOpacity>
 
             <View style={styles.modalHeader}>
-              <View style={styles.satelliteIcon}>
-                <Satellite size={32} color="#007AFF" strokeWidth={2} />
+              <View style={styles.titleRow}>
+                <Satellite size={32} color="#000000" strokeWidth={2} />
+                <View style={styles.titleContainer}>
+                  <Text style={styles.modalTitle}>Iniciar Rastreo GPS</Text>
+                  <Text style={styles.modalSubtitle}>Seguimiento por satélite</Text>
+                </View>
               </View>
-              <Text style={styles.modalTitle}>Iniciar Rastreo GPS</Text>
-              <Text style={styles.modalSubtitle}>Seguimiento por satélite</Text>
             </View>
 
             <View style={styles.inputContainer}>
@@ -334,26 +337,32 @@ export default function IndexScreen() {
               <TextInput
                 style={[
                   styles.textInput,
-                  userName.trim() ? styles.textInputFilled : null
+                  userName.trim() ? styles.textInputFilled : null,
+                  isInputFocused ? styles.textInputFocused : null
                 ]}
                 placeholder="Ingresa el nombre..."
                 placeholderTextColor="#999"
                 value={userName}
                 onChangeText={setUserName}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
                 autoFocus
                 selectionColor="#999"
                 cursorColor="#999"
+                underlineColorAndroid="transparent"
               />
             </View>
 
             <View style={styles.featureContainer}>
-              <View style={styles.featureIcon}>
-                <Satellite size={20} color="#007AFF" strokeWidth={2} />
+              <View style={styles.featureRow}>
+                <Satellite size={20} color="#000000" strokeWidth={2} />
+                <View style={styles.featureTextContainer}>
+                  <Text style={styles.featureTitle}>Rastreo mediante GPS</Text>
+                  <Text style={styles.featureDescription}>
+                    El seguimiento utilizará señales de satélite para obtener la ubicación precisa en tiempo real.
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.featureTitle}>Rastreo mediante GPS</Text>
-              <Text style={styles.featureDescription}>
-                El seguimiento utilizará señales de satélite para obtener la ubicación precisa en tiempo real.
-              </Text>
             </View>
 
             <View style={styles.modalButtonContainer}>
@@ -368,8 +377,8 @@ export default function IndexScreen() {
                 ]} 
                 onPress={startTracking}
               >
-                <MaterialIcons name="navigation" size={16} color="white" />
-                <Text style={styles.startTrackingButtonText}>Iniciar Rastreo</Text>
+                <Send size={16} color="white" strokeWidth={2} />
+                <Text style={styles.startTrackingButtonText}>Iniciar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -418,8 +427,7 @@ const styles = StyleSheet.create({
   },
   initialContainer: {
     flex: 1,
-    justifyContent: 'center',
-    paddingTop: 60,
+    paddingTop: 8, // Mismo margen que marginBottom del searchContainer
   },
   searchContainer: {
     flexDirection: 'row',
@@ -428,8 +436,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,
-    marginBottom: 16,
-    marginTop: 8,
+    marginBottom: 8,
+    marginTop: 16,
   },
   searchPlaceholder: {
     fontSize: 16,
@@ -707,8 +715,16 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalHeader: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 24,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  titleContainer: {
+    flex: 1,
   },
   satelliteIcon: {
     marginBottom: 8,
@@ -717,7 +733,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#333',
-    marginTop: 12,
     marginBottom: 4,
   },
   modalSubtitle: {
@@ -745,9 +760,21 @@ const styles = StyleSheet.create({
   textInputFilled: {
     borderColor: '#999',
   },
+  textInputFocused: {
+    borderColor: '#999',
+    borderWidth: 1,
+  },
   featureContainer: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 24,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  featureTextContainer: {
+    flex: 1,
   },
   featureIcon: {
     marginBottom: 8,
@@ -756,13 +783,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginTop: 8,
     marginBottom: 8,
   },
   featureDescription: {
     fontSize: 14,
     color: '#666',
-    textAlign: 'center',
+    textAlign: 'left',
     lineHeight: 20,
   },
   modalButtonContainer: {
@@ -795,7 +821,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#000000',
     fontWeight: '500',
   },
 });

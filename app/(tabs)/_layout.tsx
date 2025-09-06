@@ -1,12 +1,12 @@
-import { MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { House, Map, User } from 'lucide-react-native';
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#007AFF",
+        tabBarActiveTintColor: "#000000",
         tabBarInactiveTintColor: "#8E8E93",
         tabBarStyle: {
           backgroundColor: "#F8F8F8",
@@ -31,7 +31,7 @@ export default function TabsLayout() {
         options={{
           title: "Inicio",
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={size || 24} color={color} />
+            <House size={size || 24} color={color} strokeWidth={2} />
           ),
         }}
       />
@@ -40,7 +40,7 @@ export default function TabsLayout() {
         options={{
           title: "Mapa",
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="map" size={size || 24} color={color} />
+            <Map size={size || 24} color={color} strokeWidth={2} />
           ),
         }}
       />
@@ -49,7 +49,7 @@ export default function TabsLayout() {
         options={{
           title: "Autor",
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size || 24} color={color} />
+            <User size={size || 24} color={color} strokeWidth={2} />
           ),
         }}
       />
