@@ -9,7 +9,15 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Esta aplicación necesita acceso a la ubicación para rastrear tu posición GPS en segundo plano.",
+        "NSLocationWhenInUseUsageDescription": "Esta aplicación necesita acceso a la ubicación para rastrear tu posición GPS.",
+        "NSLocationAlwaysUsageDescription": "Esta aplicación necesita acceso a la ubicación para rastrear tu posición GPS en segundo plano.",
+        "UIBackgroundModes": [
+          "location"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,8 +27,23 @@
       "edgeToEdgeEnabled": true,
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
-      ]
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
+      ],
+      "package": "com.lanubedethom.mobilegps"
     },
     "web": {
       "bundler": "metro",
@@ -29,10 +52,15 @@
     },
     "plugins": [
       "expo-router",
+      "expo-task-manager",
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Esta aplicación necesita acceso a la ubicación para rastrear tu posición GPS."
+          "locationAlwaysAndWhenInUsePermission": "Esta aplicación necesita acceso a la ubicación para rastrear tu posición GPS.",
+          "locationWhenInUsePermission": "Esta aplicación necesita acceso a la ubicación para rastrear tu posición GPS.",
+          "locationAlwaysPermission": "Esta aplicación necesita acceso a la ubicación para rastrear tu posición GPS en segundo plano.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true
         }
       ],
       [
