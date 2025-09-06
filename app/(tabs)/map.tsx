@@ -4,24 +4,31 @@ import {
     StatusBar,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View,
 } from 'react-native';
 
 export default function MapScreen() {
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F8F8" />
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
       
       {/* Header */}
       <View style={styles.header}>
-        <MaterialIcons name="menu" size={24} color="#333" />
+        <TouchableOpacity>
+          <MaterialIcons name="menu" size={24} color="#333" />
+        </TouchableOpacity>
         <View style={styles.headerCenter}>
           <MaterialIcons name="gps-fixed" size={20} color="#333" />
           <Text style={styles.headerTitle}>GPS Tracker</Text>
         </View>
         <View style={styles.headerRight}>
-          <MaterialIcons name="layers" size={24} color="#333" style={styles.headerIcon} />
-          <MaterialIcons name="settings" size={24} color="#333" />
+          <TouchableOpacity style={styles.headerIconButton}>
+            <MaterialIcons name="layers" size={24} color="#333" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerIconButton}>
+            <MaterialIcons name="settings" size={24} color="#333" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -40,13 +47,13 @@ export default function MapScreen() {
             <Text style={styles.coordinates}>-13.5410, -71.9843</Text>
           </View>
 
-          <View style={styles.directionButton}>
+          <TouchableOpacity style={styles.directionButton}>
             <MaterialIcons name="navigation" size={24} color="#007AFF" />
-          </View>
+          </TouchableOpacity>
 
-          <View style={styles.locationButton}>
+          <TouchableOpacity style={styles.locationButton}>
             <MaterialIcons name="my-location" size={24} color="#333" />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -56,7 +63,7 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: 'white',
   },
   header: {
     flexDirection: 'row',
@@ -65,7 +72,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 16,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: 'white',
   },
   headerCenter: {
     flexDirection: 'row',
@@ -82,22 +89,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  headerIcon: {
-    marginRight: 0,
+  headerIconButton: {
+    padding: 4,
   },
   content: {
     flex: 1,
     paddingHorizontal: 16,
+    backgroundColor: '#F8F8F8',
   },
   centerContent: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 40,
+    paddingTop: 60,
   },
   mapContainer: {
     width: 320,
-    height: 240,
+    height: 180,
     backgroundColor: 'white',
     borderRadius: 16,
     justifyContent: 'center',
@@ -130,6 +137,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   coordinates: {
     fontSize: 14,
@@ -139,7 +154,7 @@ const styles = StyleSheet.create({
   directionButton: {
     position: 'absolute',
     right: 30,
-    bottom: 160,
+    bottom: 220,
     width: 48,
     height: 48,
     backgroundColor: 'white',
@@ -158,7 +173,7 @@ const styles = StyleSheet.create({
   locationButton: {
     position: 'absolute',
     right: 30,
-    bottom: 100,
+    bottom: 160,
     width: 48,
     height: 48,
     backgroundColor: 'white',
