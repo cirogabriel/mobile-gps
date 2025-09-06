@@ -1,4 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { Satellite } from 'lucide-react-native';
 import React from 'react';
 import {
     ScrollView,
@@ -20,7 +21,7 @@ export default function AuthorScreen() {
           <MaterialIcons name="menu" size={24} color="#333" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <MaterialIcons name="gps-fixed" size={20} color="#333" />
+          <Satellite size={20} color="#333" strokeWidth={2} />
           <Text style={styles.headerTitle}>GPS Tracker</Text>
         </View>
         <View style={styles.headerRight}>

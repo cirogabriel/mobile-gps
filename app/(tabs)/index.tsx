@@ -1,5 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
+import { Satellite } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -31,13 +32,8 @@ export default function IndexScreen() {
   const [elapsedTime, setElapsedTime] = useState('0s');
 
   useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permiso requerido', 'Se necesita acceso a la ubicación para usar esta app');
-        return;
-      }
-    })();
+    // Solo pedir permisos cuando el usuario quiera iniciar tracking
+    // No al cargar la app
   }, []);
 
   useEffect(() => {
@@ -57,6 +53,13 @@ export default function IndexScreen() {
   const startTracking = async () => {
     if (!userName.trim()) {
       Alert.alert('Error', 'Por favor ingresa tu nombre');
+      return;
+    }
+
+    // Pedir permisos de ubicación cuando se inicia el tracking
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso requerido', 'Se necesita acceso a la ubicación para usar esta app');
       return;
     }
 
@@ -144,7 +147,7 @@ export default function IndexScreen() {
           <MaterialIcons name="menu" size={24} color="#333" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <MaterialIcons name="gps-fixed" size={20} color="#333" />
+          <Satellite size={20} color="#333" strokeWidth={2} />
           <Text style={styles.headerTitle}>GPS Tracker</Text>
         </View>
         <View style={styles.headerRight}>
@@ -161,11 +164,12 @@ export default function IndexScreen() {
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <MaterialIcons name="search" size={20} color="#999" />
+          <Text style={styles.searchPlaceholder}>Buscar ubicación...</Text>
         </View>
 
         {!isTracking ? (
-          // Estado inicial - Detenido
-          <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+          // Estado inicial - Detenido (como primera imagen)
+          <View style={styles.initialContainer}>
             {/* Estado Detenido */}
             <View style={styles.statusCard}>
               <View style={styles.statusRow}>
@@ -186,49 +190,7 @@ export default function IndexScreen() {
                 <Text style={styles.startButtonText}>Iniciar</Text>
               </TouchableOpacity>
             </View>
-
-            {/* Ubicación Actual */}
-            <View style={styles.locationCard}>
-              <View style={styles.locationHeader}>
-                <MaterialIcons name="location-on" size={20} color="#333" />
-                <Text style={styles.locationTitle}>Ubicación Actual</Text>
-              </View>
-
-              <View style={styles.locationDetails}>
-                <View style={styles.locationItem}>
-                  <Text style={styles.locationLabel}>Latitud:</Text>
-                  <Text style={styles.locationValue}>-13.540991</Text>
-                </View>
-                <View style={styles.locationItem}>
-                  <Text style={styles.locationLabel}>Longitud:</Text>
-                  <Text style={styles.locationValue}>-71.984282</Text>
-                </View>
-                <View style={styles.locationItem}>
-                  <Text style={styles.locationLabel}>Precisión:</Text>
-                  <Text style={styles.locationValue}>37m</Text>
-                </View>
-                <View style={styles.locationItem}>
-                  <Text style={styles.locationLabel}>Velocidad:</Text>
-                  <Text style={styles.locationValue}>0 km/h</Text>
-                </View>
-
-                <View style={styles.timeSection}>
-                  <View style={styles.timeLabelsRow}>
-                    <Text style={styles.timeLabel}>Inicio</Text>
-                    <Text style={styles.timeLabel}>Tiempo</Text>
-                    <Text style={styles.timeLabel}>Última actualización</Text>
-                  </View>
-                  <View style={styles.timeValuesRow}>
-                    <Text style={styles.timeValue}>10:57</Text>
-                    <View style={styles.timeBadge}>
-                      <Text style={styles.timeBadgeText}>50s</Text>
-                    </View>
-                    <Text style={styles.timeValue}>10:57</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </ScrollView>
+          </View>
         ) : (
           // Estado rastreando
           <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
@@ -236,7 +198,7 @@ export default function IndexScreen() {
             <View style={styles.gpsCard}>
               <View style={styles.gpsHeader}>
                 <View style={styles.gpsIndicator}>
-                  <MaterialIcons name="gps-fixed" size={16} color="#4CAF50" />
+                  <Satellite size={16} color="#4CAF50" strokeWidth={2} />
                   <Text style={styles.gpsText}>Geolocalización via GPS</Text>
                 </View>
                 <View style={styles.liveBadge}>
@@ -360,7 +322,9 @@ export default function IndexScreen() {
             </TouchableOpacity>
 
             <View style={styles.modalHeader}>
-              <MaterialIcons name="gps-fixed" size={32} color="#007AFF" />
+              <View style={styles.satelliteIcon}>
+                <Satellite size={32} color="#007AFF" strokeWidth={2} />
+              </View>
               <Text style={styles.modalTitle}>Iniciar Rastreo GPS</Text>
               <Text style={styles.modalSubtitle}>Seguimiento por satélite</Text>
             </View>
@@ -378,11 +342,14 @@ export default function IndexScreen() {
                 onChangeText={setUserName}
                 autoFocus
                 selectionColor="#999"
+                cursorColor="#999"
               />
             </View>
 
             <View style={styles.featureContainer}>
-              <MaterialIcons name="gps-fixed" size={20} color="#007AFF" />
+              <View style={styles.featureIcon}>
+                <Satellite size={20} color="#007AFF" strokeWidth={2} />
+              </View>
               <Text style={styles.featureTitle}>Rastreo mediante GPS</Text>
               <Text style={styles.featureDescription}>
                 El seguimiento utilizará señales de satélite para obtener la ubicación precisa en tiempo real.
@@ -449,6 +416,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#F8F8F8',
   },
+  initialContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingTop: 60,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -458,6 +430,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     marginTop: 8,
+  },
+  searchPlaceholder: {
+    fontSize: 16,
+    color: '#999',
+    marginLeft: 8,
   },
   scrollContainer: {
     flex: 1,
@@ -733,6 +710,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  satelliteIcon: {
+    marginBottom: 8,
+  },
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
@@ -768,6 +748,9 @@ const styles = StyleSheet.create({
   featureContainer: {
     alignItems: 'center',
     marginBottom: 24,
+  },
+  featureIcon: {
+    marginBottom: 8,
   },
   featureTitle: {
     fontSize: 16,
