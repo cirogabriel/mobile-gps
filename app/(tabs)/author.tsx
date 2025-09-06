@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { Satellite } from 'lucide-react-native';
+import { Satellite, User } from 'lucide-react-native';
 import React from 'react';
 import {
     ScrollView,
@@ -34,72 +34,55 @@ export default function AuthorScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Profile Section */}
-        <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <MaterialIcons name="person" size={60} color="#666" />
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Academic Info Card */}
+        <View style={styles.academicCard}>
+          {/* Header with icon */}
+          <View style={styles.cardHeader}>
+            <User size={20} color="#000000" strokeWidth={2} />
+            <Text style={styles.cardTitle}>Información del Autor</Text>
           </View>
-          <Text style={styles.authorName}>Ciro Gabriel</Text>
-          <Text style={styles.authorTitle}>Desarrollador Mobile</Text>
-        </View>
-
-        {/* About Section */}
-        <View style={styles.aboutCard}>
-          <Text style={styles.sectionTitle}>Acerca de</Text>
-          <Text style={styles.aboutText}>
-            Desarrollador especializado en aplicaciones móviles con React Native y Expo. 
-            Apasionado por crear soluciones tecnológicas innovadoras y funcionales.
-          </Text>
-        </View>
-
-        {/* Skills Section */}
-        <View style={styles.skillsCard}>
-          <Text style={styles.sectionTitle}>Tecnologías</Text>
-          <View style={styles.skillsContainer}>
-            <View style={styles.skillBadge}>
-              <Text style={styles.skillText}>React Native</Text>
-            </View>
-            <View style={styles.skillBadge}>
-              <Text style={styles.skillText}>Expo</Text>
-            </View>
-            <View style={styles.skillBadge}>
-              <Text style={styles.skillText}>TypeScript</Text>
-            </View>
-            <View style={styles.skillBadge}>
-              <Text style={styles.skillText}>GPS Location</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Contact Section */}
-        <View style={styles.contactCard}>
-          <Text style={styles.sectionTitle}>Contacto</Text>
-          <TouchableOpacity style={styles.contactItem}>
-            <MaterialIcons name="email" size={20} color="#007AFF" />
-            <Text style={styles.contactText}>ciro.gabriel@email.com</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.contactItem}>
-            <MaterialIcons name="link" size={20} color="#007AFF" />
-            <Text style={styles.contactText}>github.com/cirogabriel</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* App Info Section */}
-        <View style={styles.appInfoCard}>
-          <Text style={styles.sectionTitle}>Información de la App</Text>
+          
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Versión:</Text>
-            <Text style={styles.infoValue}>1.0.0</Text>
+            <Text style={styles.infoLabel}>Autor:</Text>
+            <Text style={styles.infoValue}>Ciro Gabriel Callapiña Castilla</Text>
           </View>
+          
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Última actualización:</Text>
-            <Text style={styles.infoValue}>Septiembre 2025</Text>
+            <Text style={styles.infoLabel}>Número:</Text>
+            <Text style={styles.infoValue}>5</Text>
           </View>
+          
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Plataforma:</Text>
-            <Text style={styles.infoValue}>React Native + Expo</Text>
+            <Text style={styles.infoLabel}>Docente:</Text>
+            <Text style={styles.infoValue}>Jose Mauro Pillco Quispe</Text>
           </View>
+          
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Curso:</Text>
+            <Text style={styles.infoValue}>Sistemas Embebidos</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Proyecto:</Text>
+            <Text style={styles.infoValue}>GPS Tracker Mobile App</Text>
+          </View>
+
+          {/* App Description */}
+          <View style={styles.descriptionContainer}>
+            <Text style={styles.descriptionText}>
+              Aplicación móvil desarrollada con React Native y Expo para rastreo GPS en tiempo real. 
+              Permite monitorear ubicación, velocidad y precisión utilizando tecnología de geolocalización.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Proyecto con propósito académico</Text>
         </View>
       </ScrollView>
     </View>
@@ -143,32 +126,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#F8F8F8',
   },
-  profileCard: {
+  contentContainer: {
+    alignItems: 'center',
+  },
+  academicCard: {
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    marginTop: 20,
+    width: '85%',
+    maxWidth: 320,
+  },
+  cardHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
-    marginTop: 16,
+    gap: 8,
   },
-  avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#F0F0F0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  authorName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: 4,
-  },
-  authorTitle: {
+  cardTitle: {
     fontSize: 16,
-    color: '#666',
+    fontWeight: '600',
+    color: '#333',
   },
   aboutCard: {
     backgroundColor: 'white',
@@ -177,7 +156,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '600',
     color: '#333',
     marginBottom: 12,
@@ -235,15 +214,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   infoLabel: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
     color: '#333',
+  },
+  descriptionContainer: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  descriptionText: {
+    fontSize: 12,
+    color: '#666',
+    lineHeight: 18,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#999',
+    fontStyle: 'italic',
   },
 });
