@@ -5,6 +5,7 @@ import { Satellite, Send } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
+    AppState,
     Modal,
     ScrollView,
     StatusBar,
@@ -107,6 +108,56 @@ export default function IndexScreen() {
         };
     }, []);
 
+    // Manejar estado de la app para reactivar background service
+    useEffect(() => {
+        const handleAppStateChange = async (nextAppState: string) => {
+            console.log('🔄 App state changed to:', nextAppState);
+
+            if (nextAppState === 'active' && isTracking) {
+                console.log('📱 App volvió a primer plano, verificando background service...');
+
+                try {
+                    const isTaskDefined = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
+                    if (isTaskDefined) {
+                        const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+                        if (!hasStarted) {
+                            console.log('🔄 Reactivando background service...');
+                            // Intentar reactivar el background service
+                            const { status } = await Location.getBackgroundPermissionsAsync();
+                            if (status === 'granted') {
+                                await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+                                    accuracy: Location.Accuracy.High,
+                                    timeInterval: 5000,
+                                    distanceInterval: 0,
+                                    deferredUpdatesInterval: 5000,
+                                    foregroundService: {
+                                        notificationTitle: '🛰️ GPS Tracker Activo',
+                                        notificationBody: 'Rastreando ubicación en segundo plano',
+                                        notificationColor: '#000000',
+                                    },
+                                    pausesUpdatesAutomatically: false,
+                                    activityType: Location.ActivityType.Other,
+                                    showsBackgroundLocationIndicator: true,
+                                });
+                                console.log('✅ Background service reactivado');
+                            }
+                        } else {
+                            console.log('✅ Background service ya está activo');
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error reactivando background service:', error);
+                }
+            }
+        };
+
+        const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+        return () => {
+            subscription?.remove();
+        };
+    }, [isTracking]);
+
     const startTracking = async () => {
         if (!userName.trim()) {
             Alert.alert('Error', 'Por favor ingresa tu nombre');
@@ -207,30 +258,41 @@ export default function IndexScreen() {
                 console.log('Error en cleanup, continuando...', cleanupError);
             }
 
-            // Iniciar background tracking si tenemos permisos
+            // Iniciar background tracking si tenemos permisos y la app está en foreground
             if (hasBackgroundPermission) {
                 try {
-                    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-                        accuracy: Location.Accuracy.High,
-                        timeInterval: 5000,
-                        distanceInterval: 0,
-                        deferredUpdatesInterval: 5000,
-                        foregroundService: {
-                            notificationTitle: '🛰️ GPS Tracker Activo',
-                            notificationBody: 'Rastreando ubicación en segundo plano',
-                            notificationColor: '#000000',
-                        },
-                        pausesUpdatesAutomatically: false,
-                        activityType: Location.ActivityType.Other,
-                        showsBackgroundLocationIndicator: true,
-                    });
-                    console.log('🚀 Background location tracking iniciado exitosamente');
+                    // Verificar el estado actual de la app
+                    const currentAppState = AppState.currentState;
+                    console.log('🔍 Estado actual de la app:', currentAppState);
+
+                    if (currentAppState === 'active') {
+                        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+                            accuracy: Location.Accuracy.High,
+                            timeInterval: 5000,
+                            distanceInterval: 0,
+                            deferredUpdatesInterval: 5000,
+                            foregroundService: {
+                                notificationTitle: '🛰️ GPS Tracker Activo',
+                                notificationBody: 'Rastreando ubicación en segundo plano',
+                                notificationColor: '#000000',
+                            },
+                            pausesUpdatesAutomatically: false,
+                            activityType: Location.ActivityType.Other,
+                            showsBackgroundLocationIndicator: true,
+                        });
+                        console.log('🚀 Background location tracking iniciado exitosamente');
+                    } else {
+                        console.warn('⚠️ App no está en foreground, no se puede iniciar foreground service');
+                        console.log('📱 Usando solo foreground tracking');
+                        startForegroundTracking();
+                    }
                 } catch (bgError) {
                     console.error('❌ Error iniciando background location:', bgError);
+                    console.log('📱 Fallback: usando foreground tracking');
                     startForegroundTracking();
                 }
             } else {
-                console.log('📱 Usando solo foreground tracking');
+                console.log('📱 Sin permisos background, usando solo foreground tracking');
                 startForegroundTracking();
             }
 
