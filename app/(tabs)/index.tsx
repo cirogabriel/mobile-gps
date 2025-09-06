@@ -108,11 +108,17 @@ export default function IndexScreen() {
         };
     }, []);
 
-    // Manejar estado de la app para reactivar background service
+    // Manejar estado de la app para reactivar background service SOLO cuando está tracking
     useEffect(() => {
+        if (!isTracking) {
+            // Si no está tracking, no hacer nada
+            return;
+        }
+
         const handleAppStateChange = async (nextAppState: string) => {
             console.log('🔄 App state changed to:', nextAppState);
 
+            // Solo actuar si realmente estamos haciendo tracking
             if (nextAppState === 'active' && isTracking) {
                 console.log('📱 App volvió a primer plano, verificando background service...');
 
@@ -148,17 +154,17 @@ export default function IndexScreen() {
                 } catch (error) {
                     console.warn('⚠️ Error reactivando background service:', error);
                 }
+            } else if (!isTracking) {
+                console.log('⏹️ Tracking detenido, no reactivando background service');
             }
         };
 
         const subscription = AppState.addEventListener('change', handleAppStateChange);
-
+        
         return () => {
             subscription?.remove();
         };
-    }, [isTracking]);
-
-    const startTracking = async () => {
+    }, [isTracking]);    const startTracking = async () => {
         if (!userName.trim()) {
             Alert.alert('Error', 'Por favor ingresa tu nombre');
             return;
@@ -314,6 +320,14 @@ export default function IndexScreen() {
 
         const interval = setInterval(async () => {
             try {
+                // PRIMERA VERIFICACIÓN: Comprobar si aún deberíamos estar tracking
+                if (!isTracking) {
+                    console.log('⏹️ isTracking es false, deteniendo foreground interval...');
+                    clearInterval((global as any).locationInterval);
+                    (global as any).locationInterval = null;
+                    return;
+                }
+
                 // Verificar que location services sigan habilitados
                 const enabled = await Location.hasServicesEnabledAsync();
                 if (!enabled) {
@@ -342,7 +356,12 @@ export default function IndexScreen() {
                 });
             } catch (error) {
                 console.error('❌ Error getting foreground location:', error);
-                // No detener el interval, solo reportar el error
+                // Si hay error, verificar si deberíamos seguir intentando
+                if (!isTracking) {
+                    console.log('⏹️ Tracking detenido, limpiando interval tras error...');
+                    clearInterval((global as any).locationInterval);
+                    (global as any).locationInterval = null;
+                }
             }
         }, 5000);
 
@@ -351,41 +370,48 @@ export default function IndexScreen() {
     };
 
     const stopTracking = async () => {
+        console.log('🛑 Iniciando proceso de detener tracking...');
+        
         try {
+            // PRIMERO: Establecer isTracking a false para prevenir cualquier reactivación
             setIsTracking(false);
 
-            // Detener background tracking si está activo
+            // SEGUNDO: Detener foreground tracking INMEDIATAMENTE
+            if ((global as any).locationInterval) {
+                clearInterval((global as any).locationInterval);
+                (global as any).locationInterval = null;
+                console.log('✅ Foreground location tracking detenido');
+            }
+
+            // TERCERO: Detener background tracking si está activo
             try {
                 const isTaskDefined = await TaskManager.isTaskDefined(LOCATION_TASK_NAME);
                 if (isTaskDefined) {
                     const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
                     if (hasStarted) {
                         await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
-                        console.log('Background location tracking detenido');
+                        console.log('✅ Background location tracking detenido');
                     }
                 }
             } catch (bgError) {
-                console.warn('Error deteniendo background location:', bgError);
+                console.warn('⚠️ Error deteniendo background location:', bgError);
             }
 
-            // Detener foreground tracking si está activo
-            if ((global as any).locationInterval) {
-                clearInterval((global as any).locationInterval);
-                (global as any).locationInterval = null;
-                console.log('Foreground location tracking detenido');
-            }
-
-            // Limpiar estado
+            // CUARTO: Limpiar todo el estado
             setCurrentLocation(null);
             setStartTime(null);
             setLastUpdateTime(null);
             setElapsedTime('0s');
-
-            console.log('Tracking completamente detenido');
+            
+            console.log('✅ Tracking completamente detenido');
         } catch (error) {
-            console.error('Error deteniendo location tracking:', error);
+            console.error('❌ Error deteniendo location tracking:', error);
             // Aún así limpiar el estado local
             setIsTracking(false);
+            if ((global as any).locationInterval) {
+                clearInterval((global as any).locationInterval);
+                (global as any).locationInterval = null;
+            }
             setCurrentLocation(null);
             setStartTime(null);
             setLastUpdateTime(null);
