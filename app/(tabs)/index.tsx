@@ -16,9 +16,13 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { firebaseLocationService } from '../../services/firebaseLocationService';
 
 // Definir el task para rastreo en segundo plano
 const LOCATION_TASK_NAME = 'background-location-task';
+
+// Variable global para almacenar el userId actual
+let currentUserId: string | null = null;
 
 // Definir el handler del task fuera del componente
 TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
@@ -30,16 +34,25 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
         const { locations } = data as any;
         if (locations && locations.length > 0) {
             const location = locations[0];
-            console.log('Background location update:', {
+            const locationData = {
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
                 accuracy: location.coords.accuracy,
                 speed: location.coords.speed,
                 timestamp: location.timestamp,
-            });
+            };
 
-            // Aquí puedes guardar la ubicación en AsyncStorage o enviarla a un servidor
-            // Para mantener el estado actualizado incluso en background
+            console.log('Background location update:', locationData);
+
+            // Enviar a Firebase si tenemos userId
+            if (currentUserId) {
+                try {
+                    await firebaseLocationService.saveLocationUpdate(currentUserId, locationData);
+                    console.log('🔥 Background location enviada a Firebase');
+                } catch (error) {
+                    console.error('❌ Error enviando background location a Firebase:', error);
+                }
+            }
         }
     }
 });
@@ -174,7 +187,9 @@ export default function IndexScreen() {
         return () => {
             subscription?.remove();
         };
-    }, [isTracking]); const startTracking = async () => {
+    }, [isTracking]);
+
+    const startTracking = async () => {
         if (!userName.trim()) {
             Alert.alert('Error', 'Por favor ingresa tu nombre');
             return;
@@ -260,6 +275,11 @@ export default function IndexScreen() {
         setLastUpdateTime(now);
 
         try {
+            // Iniciar sesión de tracking en Firebase
+            await firebaseLocationService.startTrackingSession(userName.trim());
+            currentUserId = userName.trim(); // Establecer para el background tracking
+            console.log('🔥 Sesión de Firebase iniciada para:', userName.trim());
+
             // Obtener ubicación inicial con configuración más robusta
             const location = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.High,
@@ -274,6 +294,10 @@ export default function IndexScreen() {
             };
 
             setCurrentLocation(locationData);
+
+            // Guardar ubicación inicial en Firebase
+            await firebaseLocationService.saveLocationUpdate(userName.trim(), locationData);
+            console.log('🔥 Ubicación inicial guardada en Firebase');
             console.log('📍 Ubicación inicial obtenida:', locationData);
 
             // Detener cualquier task anterior
@@ -374,6 +398,17 @@ export default function IndexScreen() {
 
                 setCurrentLocation(newLocationData);
                 setLastUpdateTime(new Date());
+
+                // Guardar ubicación en Firebase si tenemos userId
+                if (userName.trim()) {
+                    try {
+                        await firebaseLocationService.saveLocationUpdate(userName.trim(), newLocationData);
+                        console.log('🔥 Ubicación guardada en Firebase');
+                    } catch (firebaseError) {
+                        console.warn('⚠️ Error guardando en Firebase:', firebaseError);
+                    }
+                }
+
                 console.log('📍 Foreground update:', {
                     lat: newLocationData.latitude.toFixed(6),
                     lng: newLocationData.longitude.toFixed(6),
@@ -422,7 +457,18 @@ export default function IndexScreen() {
                 console.warn('⚠️ Error deteniendo background location:', bgError);
             }
 
-            // CUARTO: Limpiar todo el estado
+            // CUARTO: Finalizar sesión de Firebase
+            if (userName.trim()) {
+                try {
+                    await firebaseLocationService.endTrackingSession(userName.trim());
+                    currentUserId = null; // Limpiar userId global
+                    console.log('🔥 Sesión de Firebase finalizada');
+                } catch (firebaseError) {
+                    console.warn('⚠️ Error finalizando sesión Firebase:', firebaseError);
+                }
+            }
+
+            // QUINTO: Limpiar todo el estado
             setCurrentLocation(null);
             setStartTime(null);
             setLastUpdateTime(null);
