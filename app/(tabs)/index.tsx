@@ -16,7 +16,24 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { firebaseLocationService } from '../../services/firebaseLocationService';
+
+// Import Firebase de manera lazy para evitar problemas de carga en Android
+let firebaseLocationService: any = null;
+
+// Función para cargar Firebase de manera segura
+const loadFirebaseService = async () => {
+    if (!firebaseLocationService) {
+        try {
+            const firebaseModule = await import('../../services/firebaseLocationService');
+            firebaseLocationService = firebaseModule.firebaseLocationService;
+            console.log('🔥 Firebase service cargado exitosamente');
+        } catch (error) {
+            console.warn('⚠️ Error cargando Firebase service:', error);
+            // La app continuará funcionando sin Firebase
+        }
+    }
+    return firebaseLocationService;
+};
 
 // Definir el task para rastreo en segundo plano
 const LOCATION_TASK_NAME = 'background-location-task';
@@ -44,8 +61,8 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
 
             console.log('Background location update:', locationData);
 
-            // Enviar a Firebase si tenemos userId
-            if (currentUserId) {
+            // Enviar a Firebase si tenemos userId y el servicio está disponible
+            if (currentUserId && firebaseLocationService) {
                 try {
                     await firebaseLocationService.saveLocationUpdate(currentUserId, locationData);
                     console.log('🔥 Background location enviada a Firebase');
@@ -275,10 +292,22 @@ export default function IndexScreen() {
         setLastUpdateTime(now);
 
         try {
-            // Iniciar sesión de tracking en Firebase
-            await firebaseLocationService.startTrackingSession(userName.trim());
-            currentUserId = userName.trim(); // Establecer para el background tracking
-            console.log('🔥 Sesión de Firebase iniciada para:', userName.trim());
+            // Cargar Firebase de manera segura
+            const firebase = await loadFirebaseService();
+
+            // Iniciar sesión de tracking en Firebase si está disponible
+            if (firebase) {
+                try {
+                    await firebase.startTrackingSession(userName.trim());
+                    currentUserId = userName.trim(); // Establecer para el background tracking
+                    console.log('🔥 Sesión de Firebase iniciada para:', userName.trim());
+                } catch (firebaseError) {
+                    console.warn('⚠️ Error iniciando sesión Firebase:', firebaseError);
+                }
+            } else {
+                console.log('📱 Continuando sin Firebase');
+                currentUserId = userName.trim(); // Establecer para tracking local
+            }
 
             // Obtener ubicación inicial con configuración más robusta
             const location = await Location.getCurrentPositionAsync({
@@ -295,9 +324,15 @@ export default function IndexScreen() {
 
             setCurrentLocation(locationData);
 
-            // Guardar ubicación inicial en Firebase
-            await firebaseLocationService.saveLocationUpdate(userName.trim(), locationData);
-            console.log('🔥 Ubicación inicial guardada en Firebase');
+            // Guardar ubicación inicial en Firebase si está disponible
+            if (firebase) {
+                try {
+                    await firebase.saveLocationUpdate(userName.trim(), locationData);
+                    console.log('🔥 Ubicación inicial guardada en Firebase');
+                } catch (firebaseError) {
+                    console.warn('⚠️ Error guardando ubicación inicial:', firebaseError);
+                }
+            }
             console.log('📍 Ubicación inicial obtenida:', locationData);
 
             // Detener cualquier task anterior
@@ -399,8 +434,8 @@ export default function IndexScreen() {
                 setCurrentLocation(newLocationData);
                 setLastUpdateTime(new Date());
 
-                // Guardar ubicación en Firebase si tenemos userId
-                if (userName.trim()) {
+                // Guardar ubicación en Firebase si tenemos userId y Firebase está disponible
+                if (userName.trim() && firebaseLocationService) {
                     try {
                         await firebaseLocationService.saveLocationUpdate(userName.trim(), newLocationData);
                         console.log('🔥 Ubicación guardada en Firebase');
@@ -457,16 +492,16 @@ export default function IndexScreen() {
                 console.warn('⚠️ Error deteniendo background location:', bgError);
             }
 
-            // CUARTO: Finalizar sesión de Firebase
-            if (userName.trim()) {
+            // CUARTO: Finalizar sesión de Firebase si está disponible
+            if (userName.trim() && firebaseLocationService) {
                 try {
                     await firebaseLocationService.endTrackingSession(userName.trim());
-                    currentUserId = null; // Limpiar userId global
                     console.log('🔥 Sesión de Firebase finalizada');
                 } catch (firebaseError) {
                     console.warn('⚠️ Error finalizando sesión Firebase:', firebaseError);
                 }
             }
+            currentUserId = null; // Limpiar userId global siempre
 
             // QUINTO: Limpiar todo el estado
             setCurrentLocation(null);
